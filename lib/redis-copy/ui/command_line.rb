@@ -7,7 +7,7 @@ module RedisCopy
 
       def confirm?(prompt)
         $stderr.puts(prompt)
-        return true if @options[:yes]
+        return true unless @options[:prompt]
         $stderr.puts("Continue? [yN]")
         abort unless $stdin.gets.chomp =~ /y/i
         true

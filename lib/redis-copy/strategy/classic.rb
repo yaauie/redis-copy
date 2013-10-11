@@ -17,22 +17,30 @@ module RedisCopy
           list = @src.lrange(key, 0, -1)
           if list.length == 0
             # Empty list special case
-            @dst.lpush(key, '')
-            @dst.lpop(key)
+            maybe_pipeline(@dst) do |dst|
+              dst.lpush(key, '')
+              dst.lpop(key)
+            end
           else
-            list.each do |ele|
-              @dst.rpush(key, ele)
+            maybe_pipeline(@dst) do |dst|
+              list.each do |ele|
+                dst.rpush(key, ele)
+              end
             end
           end
         when "set"
           set = @src.smembers(key)
           if set.length == 0
             # Empty set special case
-            @dst.sadd(key, '')
-            @dst.srem(key, '')
+            maybe_pipeline(@dst) do |dst|
+              dst.sadd(key, '')
+              dst.srem(key, '')
+            end
           else
-            set.each do |ele|
-              @dst.sadd(key,ele)
+            maybe_pipeline(@dst) do |dst|
+              set.each do |ele|
+                dst.sadd(key,ele)
+              end
             end
           end
         when 'hash'
@@ -49,6 +57,18 @@ module RedisCopy
         @dst.expire(key, ttl) unless ttl < 0 || vtype == 'none'
 
         return true
+      end
+
+      def maybe_pipeline(redis, &block)
+        if pipeline_enabled? && redis.respond_to?(:pipelined)
+          redis.pipelined(&block)
+        else
+          yield(redis)
+        end
+      end
+
+      def pipeline_enabled?
+        @pipeline_enabled ||= (false | @opt[:pipeline])
       end
     end
   end

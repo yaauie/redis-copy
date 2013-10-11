@@ -32,11 +32,6 @@ class RedisMultiplex < Struct.new(:source, :destination)
 end
 
 shared_examples_for(RedisCopy::Strategy) do
-  let(:ui) { double.as_null_object }
-  let(:strategy) { strategy_class.new(source, destination, ui)}
-  let(:source) { Redis.new(db: 14) }
-  let(:destination) { Redis.new(db: 15) }
-  let(:multiplex) { RedisMultiplex.new(source, destination) }
   let(:key) { rand(16**128).to_s(16) }
   after(:each) { multiplex.both { |redis| redis.del(key) } }
 
@@ -332,6 +327,13 @@ shared_examples_for(RedisCopy::Strategy) do
 end
 
 describe RedisCopy::Strategy do
+  let(:options) { Hash.new } # append using before(:each) { options.update(foo: true) }
+  let(:ui) { double.as_null_object }
+  let(:strategy) { strategy_class.new(source, destination, ui, options)}
+  let(:multiplex) { RedisMultiplex.new(source, destination) }
+  let(:source) { Redis.new(db: 14) }
+  let(:destination) { Redis.new(db: 15) }
+
   describe :New do
     let(:strategy_class) { RedisCopy::Strategy::New }
     it_should_behave_like RedisCopy::Strategy
@@ -339,5 +341,22 @@ describe RedisCopy::Strategy do
   describe :Classic do
     let(:strategy_class) { RedisCopy::Strategy::Classic }
     it_should_behave_like RedisCopy::Strategy
+    context '#maybe_pipeline' do
+      it 'should not pipeline' do
+        source.should_not_receive(:pipelined)
+        strategy.maybe_pipeline(source) { }
+      end
+    end
+
+    context 'with pipeline enabled' do
+      before(:each) { options.update pipeline: true }
+      it_should_behave_like RedisCopy::Strategy
+      context '#maybe_pipeline' do
+        it 'should pipeline' do
+          source.should_receive(:pipelined)
+          strategy.maybe_pipeline(source) { }
+        end
+      end
+    end
   end
 end

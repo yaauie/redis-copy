@@ -10,8 +10,10 @@ module RedisCopy
       ui:             :command_line,
       key_emitter:    :default,
       strategy:       :auto,
+      pipeline:       :true,
       fail_fast:      false,
-      yes:            false,
+      prompt:         true,
+      trace:          false,
       allow_nonempty: false,
     }.freeze unless defined?(DEFAULTS)
 
@@ -44,28 +46,34 @@ module RedisCopy
           options[:strategy] = strategy
         end
 
-        opts.on('--[no-]dry-run', 'Output configuration and exit') do |d|
-          options[:dry_run] = true
+        opts.on('--[no-]pipeline',
+          "Use redis pipeline where available (default #{DEFAULTS[:pipeline]})"
+        ) do |pipeline|
+          options[:pipeline] = pipeline
         end
 
-        opts.on('-d', '--[no-]debug', 'Write debug output') do |debug|
+        opts.on('-d', '--[no-]debug', "Write debug output (default #{DEFAULTS[:debug]})") do |debug|
           options[:debug] = debug
         end
 
-        opts.on('-t', '--[no-]trace', 'Enable backtrace on failure') do |trace|
+        opts.on('-t', '--[no-]trace', "Enable backtrace on failure (default #{DEFAULTS[:trace]})") do |trace|
           options[:trace] = trace
         end
 
-        opts.on('-f', '--[no-]fail-fast', 'Abort on first failure') do |ff|
+        opts.on('-f', '--[no-]fail-fast', "Abort on first failure (default #{DEFAULTS[:fail_fast]})") do |ff|
           options[:fail_fast] = ff
         end
 
-        opts.on('-y', '--yes', 'Automatically accept any prompts') do
-          options[:yes] = true
+        opts.on('--[no-]prompt', "Prompt for confirmation (default #{DEFAULTS[:prompt]})") do
+          options[:prompt] = true
         end
 
-        opts.on('--[no-]allow-nonempty', 'Allow non-empty destination') do |allow_nonempty|
+        opts.on('--[no-]allow-nonempty', "Allow non-empty destination (default #{DEFAULTS[:allow_nonempty]})") do |allow_nonempty|
           options[:allow_nonempty] = allow_nonempty
+        end
+
+        opts.on('--[no-]dry-run', 'Output configuration and exit') do |d|
+          options[:dry_run] = true
         end
 
         opts.parse!(argv)
