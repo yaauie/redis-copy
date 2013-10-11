@@ -45,6 +45,12 @@ module RedisCopy
           ui.notify("FAIL: #{key.dump}")
           ui.abort if options[:fail_fast]
         end
+
+        if options[:verify] && !strategem.verify?(key)
+          ui.notify("BORK: #{key.dump}")
+          ui.abort if options[:fail_fast]
+        end
+
         ui.notify("PROGRESS: #{stats.inspect}") if (stats[:attempt] % 1000).zero?
       end.tap do |stats|
         ui.notify("DONE: #{stats.inspect}")

@@ -6,6 +6,7 @@ module RedisCopy
       include Strategy
 
       def copy(key)
+        @ui.debug("COPY: #{key.dump}")
         vtype = @src.type(key)
         ttl = @src.ttl(key)
 

@@ -10,6 +10,7 @@ module RedisCopy
       ui:             :command_line,
       key_emitter:    :default,
       strategy:       :auto,
+      verify:         :false,
       pipeline:       :true,
       fail_fast:      false,
       prompt:         true,
@@ -64,8 +65,12 @@ module RedisCopy
           options[:fail_fast] = ff
         end
 
-        opts.on('--[no-]prompt', "Prompt for confirmation (default #{DEFAULTS[:prompt]})") do
-          options[:prompt] = true
+        opts.on('-f', '--[no-]verify', "Verify each key -- VERY SLOW (default #{DEFAULTS[:verify]})") do |verify|
+          options[:verify] = verify
+        end
+
+        opts.on('--[no-]prompt', "Prompt for confirmation (default #{DEFAULTS[:prompt]})") do |prompt|
+          options[:prompt] = prompt
         end
 
         opts.on('--[no-]allow-nonempty', "Allow non-empty destination (default #{DEFAULTS[:allow_nonempty]})") do |allow_nonempty|

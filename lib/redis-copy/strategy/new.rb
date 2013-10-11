@@ -6,6 +6,8 @@ module RedisCopy
       include Strategy
 
       def copy(key)
+        @ui.debug("COPY: #{key.dump}")
+
         ttl = @src.ttl(key)
         # TTL returns seconds, -1 means none set
         # RESTORE ttl is in miliseconds, 0 means none set

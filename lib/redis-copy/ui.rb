@@ -1,5 +1,8 @@
 # encoding: utf-8
 
+require_relative 'ui/auto_run'
+require_relative 'ui/command_line'
+
 module RedisCopy
   module UI
     def self.load(options = {})
