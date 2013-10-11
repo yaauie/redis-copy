@@ -15,7 +15,6 @@ module RedisCopy
     # @param destination [String]
     # @options options [Hash<Symbol,Object>]
     def copy(source, destination, options = {})
-      puts options.inspect
       ui = UI.load(options)
 
       source = redis_from(source)
@@ -35,7 +34,7 @@ module RedisCopy
         Strategy:    #{strategem}
       EODESC
 
-      ui.abort('Destination not empty!') unless dest_empty
+      ui.abort('Destination not empty!') unless dest_empty or options[:allow_nonempty]
 
       key_emitter.keys.each_with_object(Hash.new {0}) do |key, stats|
         success = strategem.copy(key)
@@ -46,7 +45,7 @@ module RedisCopy
           ui.notify("FAIL: #{key.dump}")
           ui.abort if options[:fail_fast]
         end
-        ui.notify(stats.inspect) if (stats[:attempt] % 1000).zero?
+        ui.notify("PROGRESS: #{stats.inspect}") if (stats[:attempt] % 1000).zero?
       end.tap do |stats|
         ui.notify("DONE: #{stats.inspect}")
       end

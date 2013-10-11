@@ -7,11 +7,12 @@ module RedisCopy
   class CLI
     REDIS_URI = (/\A(?:redis:\/\/)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
     DEFAULTS = {
-      ui:           :command_line,
-      key_emitter:  :default,
-      strategy:     :auto,
-      fail_fast:    false,
-      yes:          false,
+      ui:             :command_line,
+      key_emitter:    :default,
+      strategy:       :auto,
+      fail_fast:      false,
+      yes:            false,
+      allow_nonempty: false,
     }.freeze unless defined?(DEFAULTS)
 
     def initialize(argv = ARGV)
@@ -19,8 +20,9 @@ module RedisCopy
       options = {}
 
       OptionParser.new do |opts|
-        opts.banner = "Usage: #{opts.program_name} [options] <source> <destination>"
         opts.version = RedisCopy::VERSION
+        opts.banner = "#{opts.program_name} v#{opts.version}\n" +
+                      "Usage: #{opts.program_name} [options] <source> <destination>"
 
         indent_desc = proc do |desc|
           desc.split("\n").join("\n#{opts.summary_indent}#{' '*opts.summary_width} ")
@@ -60,6 +62,10 @@ module RedisCopy
 
         opts.on('-y', '--yes', 'Automatically accept any prompts') do
           options[:yes] = true
+        end
+
+        opts.on('--[no-]allow-nonempty', 'Allow non-empty destination') do |allow_nonempty|
+          options[:allow_nonempty] = allow_nonempty
         end
 
         opts.parse!(argv)

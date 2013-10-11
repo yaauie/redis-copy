@@ -1,24 +1,59 @@
 # Redis::Copy
 
-TODO: Write a gem description
+This utility provides a way to move the contents of one redis DB to another
+redis DB. It is inspired by the [redis-copy.rb script][original] included in
+the redis source, but supports the following additional features:
+
+ - all known data types (original supported `set`, `list`, and `string`,
+   dropping the others without warning)
+ - if available on both dbs, will use `DUMP`/`RESTORE` commands (redis v2.6+)
+ - support for more than just db0
+
+[original]: https://github.com/antirez/redis/commits/unstable/utils/redis-copy.rb
 
 ## Installation
-
-Add this line to your application's Gemfile:
-
-    gem 'redis-copy'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
 
     $ gem install redis-copy
 
 ## Usage
 
-TODO: Write usage instructions here
+The current options can be grabbed using the `--help` flag.
+
+```
+$ redis-copy --help
+redis-copy v0.0.2
+Usage: redis-copy [options] <source> <destination>
+    <source> and <destination> must be redis connection uris
+    like [redis://]<hostname>[:<port>][/<db>]
+
+Specific options:
+        --strategy STRATEGY          Select strategy (auto, new, classic) (default auto)
+                                       auto:    uses new if available, otherwise fallback
+                                       new:     use redis DUMP and RESTORE commands (faster)
+                                       classic: migrates via multiple type-specific commands
+        --[no-]dry-run               Output configuration and exit
+    -d, --[no-]debug                 Write debug output
+    -t, --[no-]trace                 Enable backtrace on failure
+    -f, --[no-]fail-fast             Abort on first failure
+    -y, --yes                        Automatically accept any prompts
+        --[no-]allow-nonempty        Allow non-empty destination
+
+```
+
+## Example:
+
+```
+$ redis-copy --fail-fast --yes old.redis.host/9 new.redis.host:6380/3
+Source:      redis://old.redis.host:6379/9
+Destination: redis://new.redis.host:6380/3 (empty)
+Key Emitter: Default
+Strategy:    New
+PROGRESS {:success=>1000, :attempt=>1000}
+PROGRESS {:success=>2000, :attempt=>2000}
+PROGRESS {:success=>3000, :attempt=>3000}
+PROGRESS {:success=>4000, :attempt=>4000}
+DONE: {:success=>4246, :attempt=>4246}
+```
 
 ## Contributing
 

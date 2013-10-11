@@ -16,6 +16,10 @@ Gem::Specification.new do |spec|
   spec.authors       = authors_and_emails.map(&:first)
   spec.email         = authors_and_emails.map(&:last)
   spec.summary       = 'Copy the contents of one redis db to another'
+  spec.description   = 'A command-line utility built for copying the ' +
+                       'contents of one redis db to another over a ' +
+                       'network. Supports all data types, persists ttls, ' +
+                       'and attempts to be as efficient as possible.'
   spec.homepage      = 'https://github.com/yaauie/redis-copy'
   spec.license       = 'MIT'
 

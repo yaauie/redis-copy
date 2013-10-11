@@ -3,7 +3,7 @@ require 'redis-copy'
 
 describe RedisCopy::KeyEmitter::Default do
   let(:redis) { double }
-  let(:ui) { double }
+  let(:ui) { double.as_null_object }
   let(:instance) { RedisCopy::KeyEmitter::Default.new(redis, ui)}
   let(:connection_uri) { 'redis://12.34.56.78:9000/15' }
 

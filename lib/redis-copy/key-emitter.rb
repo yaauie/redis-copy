@@ -36,6 +36,25 @@ module RedisCopy
     class Default
       include KeyEmitter
 
+      def initialize(redis, ui, options = {})
+        ui.abort unless ui.confirm? <<-EOWARNING.strip_heredoc
+          WARNING: #{self} key emitter uses redis.keys('*') to
+          get its list of keys.
+
+          The redis keys command [reference](http://redis.io/commands/keys)
+          says this:
+
+          > Warning: consider KEYS as a command that should only be used
+          > in production environments with extreme care. It may ruin
+          > performance when it is executed against large databases.
+          > This command is intended for debugging and special operations,
+          > such as changing your keyspace layout. Don't use KEYS in your
+          > regular application code. If you're looking for a way to find
+          > keys in a subset of your keyspace, consider using sets.
+        EOWARNING
+        super
+      end
+
       def keys
         @ui.debug "REDIS: #{@redis.client.id} KEYS *"
         @redis.keys('*').to_enum
