@@ -21,7 +21,7 @@ The current options can be grabbed using the `--help` flag.
 
 ```
 $ redis-copy --help
-redis-copy v0.0.2
+redis-copy v0.0.4
 Usage: redis-copy [options] <source> <destination>
     <source> and <destination> must be redis connection uris
     like [redis://]<hostname>[:<port>][/<db>]
@@ -31,13 +31,14 @@ Specific options:
                                        auto:    uses new if available, otherwise fallback
                                        new:     use redis DUMP and RESTORE commands (faster)
                                        classic: migrates via multiple type-specific commands
+        --[no-]pipeline              Use redis pipeline where available (default true)
+    -d, --[no-]debug                 Write debug output (default false)
+    -t, --[no-]trace                 Enable backtrace on failure (default false)
+        --[no-]fail-fast             Abort on first failure (default false)
+    -f, --[no-]verify                Verify each key -- VERY SLOW (default false)
+        --[no-]prompt                Prompt for confirmation (default true)
+        --[no-]allow-nonempty        Allow non-empty destination (default false)
         --[no-]dry-run               Output configuration and exit
-    -d, --[no-]debug                 Write debug output
-    -t, --[no-]trace                 Enable backtrace on failure
-    -f, --[no-]fail-fast             Abort on first failure
-    -y, --yes                        Automatically accept any prompts
-        --[no-]allow-nonempty        Allow non-empty destination
-
 ```
 
 ## Example:
