@@ -28,6 +28,10 @@ module RedisCopy
       raise NotImplementedError
     end
 
+    def dbsize
+      @redis.dbsize
+    end
+
     def to_s
       self.class.name.demodulize.humanize
     end
@@ -36,10 +40,16 @@ module RedisCopy
     class Default
       include KeyEmitter
 
-      def initialize(redis, ui, options = {})
-        ui.abort unless ui.confirm? <<-EOWARNING.strip_heredoc
+      def keys
+        dbsize = self.dbsize
+
+        # HT: http://stackoverflow.com/a/11466770
+        dbsize_str = dbsize.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
+
+        @ui.abort unless (dbsize < 10_000) || (@ui.confirm? <<-EOWARNING.strip_heredoc)
           WARNING: #{self} key emitter uses redis.keys('*') to
-          get its list of keys.
+          get its list of keys, and you have #{dbsize_str} keys in
+          your source DB.
 
           The redis keys command [reference](http://redis.io/commands/keys)
           says this:
@@ -52,10 +62,7 @@ module RedisCopy
           > regular application code. If you're looking for a way to find
           > keys in a subset of your keyspace, consider using sets.
         EOWARNING
-        super
-      end
 
-      def keys
         @ui.debug "REDIS: #{@redis.client.id} KEYS *"
         @redis.keys('*').to_enum
       end
