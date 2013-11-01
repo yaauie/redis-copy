@@ -15,6 +15,7 @@ module RedisCopy
       fail_fast:      false,
       prompt:         true,
       trace:          false,
+      debug:          false,
       allow_nonempty: false,
     }.freeze unless defined?(DEFAULTS)
 
