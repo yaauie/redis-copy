@@ -21,7 +21,7 @@ The current options can be grabbed using the `--help` flag.
 
 ```
 $ redis-copy --help
-redis-copy v0.0.4
+redis-copy v0.0.5
 Usage: redis-copy [options] <source> <destination>
     <source> and <destination> must be redis connection uris
     like [redis://]<hostname>[:<port>][/<db>]
