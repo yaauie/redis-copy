@@ -46,9 +46,14 @@ module RedisCopy
           ui.abort if options[:fail_fast]
         end
 
-        if options[:verify] && !strategem.verify?(key)
-          ui.notify("BORK: #{key.dump}")
-          ui.abort if options[:fail_fast]
+        probably(options[:verify]) do
+          if strategem.verify?(key)
+            stats[:verified] += 1
+          else
+            stats[:borked] += 1
+            ui.notify("BORK: #{key.dump}")
+            ui.abort if options[:fail_fast]
+          end
         end
 
         ui.notify("PROGRESS: #{stats.inspect}") if (stats[:attempt] % 1000).zero?
@@ -58,6 +63,17 @@ module RedisCopy
     end
 
     private
+
+    # yields the block, probably.
+    # @param probability [Integer] 0-100
+    # @return [void]
+    # used by ::copy in determining whether to verify.
+    def probably(probability)
+      return if probability.zero?
+      if probability >= 100 || (Random::rand(100) % 100) < probability
+        yield
+      end
+    end
 
     def same_redis?(redis_a, redis_b)
       # Redis::Client#id returns the connection uri

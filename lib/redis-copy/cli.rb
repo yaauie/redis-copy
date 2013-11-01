@@ -10,7 +10,7 @@ module RedisCopy
       ui:             :command_line,
       key_emitter:    :default,
       strategy:       :auto,
-      verify:         :false,
+      verify:         0,
       pipeline:       :true,
       fail_fast:      false,
       prompt:         true,
@@ -66,8 +66,17 @@ module RedisCopy
           options[:fail_fast] = ff
         end
 
-        opts.on('-f', '--[no-]verify', "Verify each key -- VERY SLOW (default #{DEFAULTS[:verify]})") do |verify|
-          options[:verify] = verify
+        opts.on('--[no-]verify [PERCENT]',
+          "Verify percentage of transfers -- VERY SLOW (default #{DEFAULTS[:verify]})"
+        ) do |verify|
+          options[:verify] = case verify
+                             when /\A1?[0-9]{2}\z/
+                               verify.to_i
+                             when false, 'false', 'none'
+                               0
+                             else
+                               100
+                             end
         end
 
         opts.on('--[no-]prompt', "Prompt for confirmation (default #{DEFAULTS[:prompt]})") do |prompt|
