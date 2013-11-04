@@ -51,7 +51,11 @@ module RedisCopy
           vs_zset = @src.zrange(key, 0, -1, :with_scores => true)
           sv_zset = vs_zset.map(&:reverse)
           @dst.zadd(key, sv_zset)
+        when 'none'
+          @ui.warn("GONE: #{key.dump}")
+          return false
         else
+          @ui.warn("UNKNOWN(#{vtype}): #{key.dump}")
           return false
         end
 
