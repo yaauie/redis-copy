@@ -1,10 +1,10 @@
 # encoding: utf-8
 require 'redis-copy'
 
-describe RedisCopy::KeyEmitter::Default do
+describe RedisCopy::KeyEmitter::Keys do
   let(:redis) { double }
   let(:ui) { double.as_null_object }
-  let(:instance) { RedisCopy::KeyEmitter::Default.new(redis, ui)}
+  let(:instance) { RedisCopy::KeyEmitter::Keys.new(redis, ui)}
   let(:connection_uri) { 'redis://12.34.56.78:9000/15' }
   let(:key_count) { 100_000 }
 
@@ -34,7 +34,7 @@ describe RedisCopy::KeyEmitter::Default do
         let(:key_count) { 100_000 }
         it 'should ask for confirmation' do
           ui.should_receive(:confirm?) do |confirmation|
-            confirmation.should match /\b100,000\b/
+            confirmation.should match /\b100,/
           end
           instance.keys
         end

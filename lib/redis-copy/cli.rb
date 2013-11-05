@@ -8,7 +8,7 @@ module RedisCopy
     REDIS_URI = (/\A(?:redis:\/\/)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
     DEFAULTS = {
       ui:             :command_line,
-      key_emitter:    :default,
+      key_emitter:    :auto,
       strategy:       :auto,
       verify:         0,
       pipeline:       :true,
@@ -46,6 +46,17 @@ module RedisCopy
           )
         ) do |strategy|
           options[:strategy] = strategy
+        end
+
+        opts.on('--emitter EMITTER', [:auto, :scan, :keys],
+          indent_desc.(
+            "Select key emitter (auto, keys, scan) (default #{DEFAULTS[:strategy]})\n" +
+            "  auto:    uses scan if available, otherwise fallback\n" +
+            "  scan:    use redis SCAN command (faster, less blocking)\n" +
+            "  keys:    uses redis KEYS command (dangerous, esp. on large datasets)"
+          )
+        ) do
+          options[:key_emitter] = strategy
         end
 
         opts.on('--[no-]pipeline',
