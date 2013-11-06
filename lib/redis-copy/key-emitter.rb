@@ -87,12 +87,7 @@ module RedisCopy
 
         return false unless bin_requirement.satisfied_by?(bin_version)
 
-        gem_version = Gem::Version.new('3.0.6')
-        gem_requirement = Gem::Requirement.new('~> 3.0', '>= 3.0.6')
-
-        return false unless gem_requirement.satisfied_by?(gem_version)
-
-        true
+        redis.respond_to(:scan_each)
       end
     end
   end
