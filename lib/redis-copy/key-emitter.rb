@@ -77,17 +77,8 @@ module RedisCopy
     class Scan
       include KeyEmitter
 
-      def keys(&block)
-        return enum_for(:keys) unless block_given?
-
-        loop do
-          cursor, keys = @redis.scan(cursor, :count => 1000)
-          @UI.debug "REDIS: #{@redis.client.id} SCAN (yielded #{keys.count} keys)"
-          keys.each(&block)
-          break if cursor == "0"
-        end
-
-        nil
+      def keys
+        @redis.scan_each(count: 1000)
       end
 
       def self.compatible?(redis)
