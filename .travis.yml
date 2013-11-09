@@ -1,9 +1,6 @@
 language: ruby
 script: "bundle exec rake run"
 
-branches:
-  only:
-    - master
 rvm:
   - 1.9.3
 gemfile:

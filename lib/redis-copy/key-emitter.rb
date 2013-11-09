@@ -9,9 +9,15 @@ module RedisCopy
   module KeyEmitter
     def self.load(redis, ui, options = {})
       key_emitter = options.fetch(:key_emitter, :default)
-      const_name = key_emitter.to_s.camelize
-      require "redis-copy/key-emitter/#{key_emitter}" unless const_defined?(const_name)
-      const_get(const_name).new(redis, ui, options)
+      scan_compatible = Scan::compatible?(redis)
+      emitklass = case key_emitter
+                  when :keys then Keys
+                  when :scan
+                    raise ArgumentError unless scan_compatible
+                    Scan
+                  when :auto then scan_compatible ? Scan : Keys
+                  end
+      emitklass.new(redis, ui, options)
     end
 
     # @param redis [Redis]
@@ -37,7 +43,7 @@ module RedisCopy
     end
 
     # The default strategy blindly uses `redis.keys('*')`
-    class Default
+    class Keys
       include KeyEmitter
 
       def keys
@@ -65,6 +71,27 @@ module RedisCopy
 
         @ui.debug "REDIS: #{@redis.client.id} KEYS *"
         @redis.keys('*').to_enum
+      end
+
+      def self.compatible?(redis)
+        true
+      end
+    end
+
+    class Scan
+      include KeyEmitter
+
+      def keys
+        @redis.scan_each(count: 1000)
+      end
+
+      def self.compatible?(redis)
+        bin_version = Gem::Version.new(redis.info['redis_version'])
+        bin_requirement = Gem::Requirement.new('>= 2.7.105')
+
+        return false unless bin_requirement.satisfied_by?(bin_version)
+
+        redis.respond_to?(:scan_each)
       end
     end
   end

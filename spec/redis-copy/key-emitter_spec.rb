@@ -1,51 +1,67 @@
 # encoding: utf-8
 require 'redis-copy'
+require_relative '../spec_helper.rb'
 
-describe RedisCopy::KeyEmitter::Default do
-  let(:redis) { double }
+shared_examples_for RedisCopy::KeyEmitter do
+  let(:emitter_klass) { described_class }
+  let(:redis) { Redis.new(REDIS_OPTIONS) }
   let(:ui) { double.as_null_object }
-  let(:instance) { RedisCopy::KeyEmitter::Default.new(redis, ui)}
-  let(:connection_uri) { 'redis://12.34.56.78:9000/15' }
-  let(:key_count) { 100_000 }
+  let(:instance) { emitter_klass.new(redis, ui)}
+  let(:key_count) { 1 }
+  let(:keys) { key_count.times.map{|i| i.to_s(16) } }
 
   before(:each) do
-    redis.stub_chain('client.id').and_return(connection_uri)
-    redis.stub(:dbsize) { key_count }
+    unless emitter_klass.compatible?(redis)
+      pending "#{emitter_klass} not supported in your environment"
+    end
+    key_count.times.each_slice(50) do |keys|
+      kv = keys.map{|x| x.to_s(16)}.zip(keys)
+      redis.mset(*kv.flatten)
+    end
     ui.stub(:debug).with(anything)
   end
+  after(:each) { redis.flushdb }
 
   context '#keys' do
-    let(:mock_return) { ['foo:bar', 'asdf:qwer'] }
-    before(:each) do
-      redis.should_receive(:keys).with('*').exactly(:once).and_return(mock_return)
-    end
+    let(:key_count) { 64 }
     context 'the result' do
       subject { instance.keys }
-      its(:to_a) { should eq mock_return }
+      its(:to_a) { should =~ keys }
     end
-    context 'the supplied ui' do
-      it 'should get a debug message' do
-        ui.should_receive(:debug).
-          with(/#{Regexp.escape(connection_uri)} KEYS \*/).
-          exactly(:once)
-        instance.keys
-      end
-      context 'when source has > 10,000 keys' do
-        let(:key_count) { 100_000 }
-        it 'should ask for confirmation' do
-          ui.should_receive(:confirm?) do |confirmation|
-            confirmation.should match /\b100,000\b/
-          end
+  end
+end
+
+describe RedisCopy::KeyEmitter::Keys do
+  it_should_behave_like RedisCopy::KeyEmitter do
+    context '#keys' do
+      context 'the supplied ui' do
+        it 'should get a debug message' do
+          ui.should_receive(:debug).
+            with(/#{redis.client.id} KEYS \*/).
+            exactly(:once)
           instance.keys
         end
-      end
-      context 'when source has <= 10,000 keys' do
-        let(:key_count) { 1_000 }
-        it 'should not ask for confirmation' do
-          ui.should_not_receive(:confirm?)
-          instance.keys
+        context 'when source has > 10,000 keys' do
+          let(:key_count) { 10_001 }
+          it 'should ask for confirmation' do
+            ui.should_receive(:confirm?) do |confirmation|
+              confirmation.should match /\b10,001/
+            end
+            instance.keys
+          end
+        end
+        context 'when source has <= 10,000 keys' do
+          let(:key_count) { 1_000 }
+          it 'should not ask for confirmation' do
+            ui.should_not_receive(:confirm?)
+            instance.keys
+          end
         end
       end
     end
   end
+end
+
+describe RedisCopy::KeyEmitter::Scan do
+  it_should_behave_like RedisCopy::KeyEmitter
 end
