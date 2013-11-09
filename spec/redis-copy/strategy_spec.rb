@@ -1,35 +1,5 @@
 # encoding: utf-8
-class RedisMultiplex < Struct.new(:source, :destination)
-  ResponseError = Class.new(RuntimeError)
-
-  def ensure_same!(&blk)
-    responses = {
-      source:      capture_result(source, &blk),
-      destination: capture_result(destination, &blk)
-    }
-    unless responses[:source] == responses[:destination]
-      raise ResponseError.new(responses.to_s)
-    end
-    case responses[:destination].first
-    when :raised then raise responses[:destination].last
-    when :returned then return responses[:destination].last
-    end
-  end
-  alias_method :both!, :ensure_same!
-
-  def both(&blk)
-    both!(&blk)
-    true
-  rescue ResponseError
-    false
-  end
-
-  def capture_result(redis, &block)
-    return [:returned, block.call(redis)]
-  rescue Object => exception
-    return [:raised, exception]
-  end
-end
+require_relative '../spec_helper'
 
 shared_examples_for(:no_ttl) do
   # key, redis,
@@ -56,9 +26,24 @@ shared_examples_for '#verify?' do
 end
 
 shared_examples_for(RedisCopy::Strategy) do
+  let(:strategy_class) { described_class }
+  let(:options) { Hash.new } # append using before(:each) { options.update(foo: true) }
+  # let(:ui) { double.as_null_object }
+  let(:ui) { RedisCopy::UI::CommandLine.new(options) }
+  let(:strategy) { strategy_class.new(source, destination, ui, options)}
+  let(:multiplex) { RedisMultiplex.new(source, destination) }
+  let(:source) { Redis.new(REDIS_OPTIONS.merge(db: 14)) }
+  let(:destination) { Redis.new(REDIS_OPTIONS.merge(db: 15)) }
+
   let(:key) { rand(16**128).to_s(16) }
   after(:each) { multiplex.both { |redis| redis.del(key) } }
   let(:ttl) { 100 }
+
+  before(:each) do
+    unless [source, destination].all?{|redis| strategy_class.compatible?(redis) }
+      pending "#{strategy_class} not supported in your environment"
+    end
+  end
 
   context '#copy' do
     before(:each) { populate.call }
@@ -301,22 +286,13 @@ shared_examples_for(RedisCopy::Strategy) do
   end
 end
 
-describe RedisCopy::Strategy do
-  let(:options) { Hash.new } # append using before(:each) { options.update(foo: true) }
-  # let(:ui) { double.as_null_object }
-  let(:ui) { RedisCopy::UI::CommandLine.new(options) }
-  let(:strategy) { strategy_class.new(source, destination, ui, options)}
-  let(:multiplex) { RedisMultiplex.new(source, destination) }
-  let(:source) { Redis.new(db: 14) }
-  let(:destination) { Redis.new(db: 15) }
 
-  describe :New do
-    let(:strategy_class) { RedisCopy::Strategy::New }
-    it_should_behave_like RedisCopy::Strategy
-  end
-  describe :Classic do
-    let(:strategy_class) { RedisCopy::Strategy::Classic }
-    it_should_behave_like RedisCopy::Strategy
+describe RedisCopy::Strategy::New do
+  it_should_behave_like RedisCopy::Strategy
+end
+
+describe RedisCopy::Strategy::Classic do
+  it_should_behave_like RedisCopy::Strategy do
     context '#maybe_pipeline' do
       it 'should not pipeline' do
         source.should_not_receive(:pipelined)
