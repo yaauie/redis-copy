@@ -55,8 +55,8 @@ module RedisCopy
             "  scan:    use redis SCAN command (faster, less blocking)\n" +
             "  keys:    uses redis KEYS command (dangerous, esp. on large datasets)"
           )
-        ) do
-          options[:key_emitter] = strategy
+        ) do |emitter|
+          options[:key_emitter] = emitter
         end
 
         opts.on('--[no-]pipeline',
