@@ -1,18 +1,22 @@
 # encoding: utf-8
 require 'redis-copy'
 
-describe RedisCopy::KeyEmitter::Keys do
-  let(:redis) { double }
+shared_examples_for RedisCopy::KeyEmitter do
+  # expects emitter_klass to be set?
+  let(:emitter_klass) { described_class }
+  let(:redis) { Redis.new(db:14) }
   let(:ui) { double.as_null_object }
-  let(:instance) { RedisCopy::KeyEmitter::Keys.new(redis, ui)}
-  let(:connection_uri) { 'redis://12.34.56.78:9000/15' }
-  let(:key_count) { 100_000 }
+  let(:instance) { emitter_klass.new(redis, ui)}
+  let(:key_count) { 1 }
 
   before(:each) do
-    redis.stub_chain('client.id').and_return(connection_uri)
-    redis.stub(:dbsize) { key_count }
+    key_count.times.each_slice(50) do |keys|
+      kv = keys.map{|x| x.to_s(16)}.zip(keys)
+      redis.mset(*kv.flatten)
+    end
     ui.stub(:debug).with(anything)
   end
+  after(:each) { redis.flushdb }
 
   context '#keys' do
     let(:mock_return) { ['foo:bar', 'asdf:qwer'] }
@@ -26,15 +30,15 @@ describe RedisCopy::KeyEmitter::Keys do
     context 'the supplied ui' do
       it 'should get a debug message' do
         ui.should_receive(:debug).
-          with(/#{Regexp.escape(connection_uri)} KEYS \*/).
+          with(/#{redis.client.id} KEYS \*/).
           exactly(:once)
         instance.keys
       end
       context 'when source has > 10,000 keys' do
-        let(:key_count) { 100_000 }
+        let(:key_count) { 10_001 }
         it 'should ask for confirmation' do
           ui.should_receive(:confirm?) do |confirmation|
-            confirmation.should match /\b100,/
+            confirmation.should match /\b10,001/
           end
           instance.keys
         end
@@ -48,4 +52,8 @@ describe RedisCopy::KeyEmitter::Keys do
       end
     end
   end
+end
+
+describe RedisCopy::KeyEmitter::Keys do
+  it_should_behave_like RedisCopy::KeyEmitter
 end
