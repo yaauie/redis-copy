@@ -25,7 +25,7 @@ module RedisCopy
 
       OptionParser.new do |opts|
         opts.version = RedisCopy::VERSION
-        opts.banner = "#{opts.program_name} v#{opts.version}\n" +
+        opts.banner = "#{opts.program_name} v#{opts.version} (with redis-rb #{Redis::VERSION})\n" +
                       "Usage: #{opts.program_name} [options] <source> <destination>"
 
         indent_desc = proc do |desc|
