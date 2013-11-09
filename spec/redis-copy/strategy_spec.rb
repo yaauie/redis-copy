@@ -34,7 +34,7 @@ end
 shared_examples_for(:no_ttl) do
   # key, redis,
   subject { redis.ttl(key) }
-  it { should eq -1 }
+  it { should be < 0 }
 end
 
 shared_examples_for(:ttl_set) do
