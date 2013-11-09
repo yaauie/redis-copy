@@ -2,7 +2,6 @@
 require 'redis-copy'
 
 shared_examples_for RedisCopy::KeyEmitter do
-  # expects emitter_klass to be set?
   let(:emitter_klass) { described_class }
   let(:redis) { Redis.new(db:14) }
   let(:ui) { double.as_null_object }
@@ -10,6 +9,9 @@ shared_examples_for RedisCopy::KeyEmitter do
   let(:key_count) { 1 }
 
   before(:each) do
+    unless emitter_klass.compatible?(redis)
+      pending "#{emitter_klass} not supported in your environment"
+    end
     key_count.times.each_slice(50) do |keys|
       kv = keys.map{|x| x.to_s(16)}.zip(keys)
       redis.mset(*kv.flatten)
@@ -55,5 +57,9 @@ shared_examples_for RedisCopy::KeyEmitter do
 end
 
 describe RedisCopy::KeyEmitter::Keys do
+  it_should_behave_like RedisCopy::KeyEmitter
+end
+
+describe RedisCopy::KeyEmitter::Scan do
   it_should_behave_like RedisCopy::KeyEmitter
 end

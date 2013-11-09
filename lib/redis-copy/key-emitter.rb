@@ -72,6 +72,10 @@ module RedisCopy
         @ui.debug "REDIS: #{@redis.client.id} KEYS *"
         @redis.keys('*').to_enum
       end
+
+      def self.compatible?(redis)
+        true
+      end
     end
 
     class Scan
