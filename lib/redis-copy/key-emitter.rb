@@ -91,7 +91,7 @@ module RedisCopy
 
         return false unless bin_requirement.satisfied_by?(bin_version)
 
-        redis.respond_to(:scan_each)
+        redis.respond_to?(:scan_each)
       end
     end
   end
