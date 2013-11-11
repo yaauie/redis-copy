@@ -3,15 +3,23 @@ require 'redis-copy'
 require_relative '../spec_helper.rb'
 
 shared_examples_for RedisCopy::KeyEmitter do
+  let(:resolved_implementation) do
+    begin
+      instance
+      true
+    rescue Implements::Implementation::NotFound
+      false
+    end
+  end
   let(:emitter_klass) { described_class }
   let(:redis) { Redis.new(REDIS_OPTIONS) }
   let(:ui) { double.as_null_object }
-  let(:instance) { emitter_klass.new(redis, ui)}
+  let(:instance) { RedisCopy::KeyEmitter.implementation(selector).new(redis, ui) }
   let(:key_count) { 1 }
   let(:keys) { key_count.times.map{|i| i.to_s(16) } }
 
   before(:each) do
-    unless emitter_klass.compatible?(redis)
+    unless resolved_implementation
       pending "#{emitter_klass} not supported in your environment"
     end
     key_count.times.each_slice(50) do |keys|
@@ -29,9 +37,15 @@ shared_examples_for RedisCopy::KeyEmitter do
       its(:to_a) { should =~ keys }
     end
   end
+
+  context 'implementation resolution' do
+    subject { instance }
+    its(:class) { should eq described_class }
+  end
 end
 
 describe RedisCopy::KeyEmitter::Keys do
+  let(:selector) { :keys }
   it_should_behave_like RedisCopy::KeyEmitter do
     context '#keys' do
       context 'the supplied ui' do
@@ -63,5 +77,6 @@ describe RedisCopy::KeyEmitter::Keys do
 end
 
 describe RedisCopy::KeyEmitter::Scan do
+  let(:selector) { :scan }
   it_should_behave_like RedisCopy::KeyEmitter
 end

@@ -34,7 +34,7 @@
 module RedisCopy
   module Strategy
     class Classic
-      include Strategy
+      implements Strategy
 
       def copy(key)
         @ui.debug("COPY: #{key.dump}")
@@ -105,10 +105,6 @@ module RedisCopy
 
       def pipeline_enabled?
         @pipeline_enabled ||= (false | @opt[:pipeline])
-      end
-
-      def self.compatible?(redis)
-        true
       end
     end
   end

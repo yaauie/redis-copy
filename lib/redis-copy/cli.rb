@@ -37,26 +37,28 @@ module RedisCopy
         opts.separator ''
         opts.separator "Specific options:"
 
-        opts.on('--strategy STRATEGY', [:auto, :new, :classic],
+        strategies = ->{Strategy.list_implementation_names << :auto}
+        opts.on('--strategy STRATEGY',
           indent_desc.(
-            "Select strategy (auto, new, classic) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    uses new if available, otherwise fallback\n" +
+            "Select strategy (#{strategies.call.join(', ')}) (default #{DEFAULTS[:strategy]})\n" +
+            "  auto:    uses best available strategy for copying\n" +
             "  new:     use redis DUMP and RESTORE commands (faster)\n" +
             "  classic: migrates via multiple type-specific commands"
           )
         ) do |strategy|
-          options[:strategy] = strategy
+          options[:strategy] = strategy.split(',')
         end
 
-        opts.on('--emitter EMITTER', [:auto, :scan, :keys],
+        emitters = ->{ KeyEmitter.list_implementation_names << :auto }
+        opts.on('--emitter EMITTER',
           indent_desc.(
-            "Select key emitter (auto, keys, scan) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    uses scan if available, otherwise fallback\n" +
+            "Select key emitter (#{emitters.call.join(', ')}) (default #{DEFAULTS[:strategy]})\n" +
+            "  auto:    best available key emitter\n" +
             "  scan:    use redis SCAN command (faster, less blocking)\n" +
             "  keys:    uses redis KEYS command (dangerous, esp. on large datasets)"
           )
         ) do |emitter|
-          options[:key_emitter] = emitter
+          options[:key_emitter] = emitter.split(',')
         end
 
         opts.on('--[no-]pipeline',
@@ -102,16 +104,21 @@ module RedisCopy
           options[:dry_run] = true
         end
 
-        opts.parse!(argv)
-        unless argv.size == 2
-          opts.abort "Source and Destination must be specified\n\n" +
-                            opts.help
-        end
-        @source = argv.shift
-        @destination = argv.shift
+        begin
+          opts.parse!(argv)
+          unless argv.size == 2
+            opts.abort "Source and Destination must be specified\n\n" +
+                              opts.help
+          end
+          @source = argv.shift
+          @destination = argv.shift
 
-        opts.abort "source is not valid URI" unless @source =~ REDIS_URI
-        opts.abort "destination is not valid URI" unless @destination =~ REDIS_URI
+          opts.abort "source is not valid URI" unless @source =~ REDIS_URI
+          opts.abort "destination is not valid URI" unless @destination =~ REDIS_URI
+        rescue OptionParser::ParseError => error
+          $stderr.puts error
+          exit 1
+        end
       end
 
       @config = DEFAULTS.merge(options)

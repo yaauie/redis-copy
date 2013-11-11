@@ -28,9 +28,10 @@ end
 shared_examples_for(RedisCopy::Strategy) do
   let(:strategy_class) { described_class }
   let(:options) { Hash.new } # append using before(:each) { options.update(foo: true) }
-  # let(:ui) { double.as_null_object }
   let(:ui) { RedisCopy::UI::CommandLine.new(options) }
   let(:strategy) { strategy_class.new(source, destination, ui, options)}
+  let(:strategy_class_finder) { RedisCopy::Strategy.implementation(selector) }
+  let(:strategy) { strategy_class_finder.new(source, destination, ui, options) }
   let(:multiplex) { RedisMultiplex.new(source, destination) }
   let(:source) { Redis.new(REDIS_OPTIONS.merge(db: 14)) }
   let(:destination) { Redis.new(REDIS_OPTIONS.merge(db: 15)) }
@@ -40,7 +41,9 @@ shared_examples_for(RedisCopy::Strategy) do
   let(:ttl) { 100 }
 
   before(:each) do
-    unless [source, destination].all?{|redis| strategy_class.compatible?(redis) }
+    begin
+      strategy.class.should eq strategy_class
+    rescue Implements::Implementation::NotFound
       pending "#{strategy_class} not supported in your environment"
     end
   end
@@ -288,10 +291,12 @@ end
 
 
 describe RedisCopy::Strategy::New do
+  let(:selector) { :new }
   it_should_behave_like RedisCopy::Strategy
 end
 
 describe RedisCopy::Strategy::Classic do
+  let(:selector) { :classic }
   it_should_behave_like RedisCopy::Strategy do
     context '#maybe_pipeline' do
       it 'should not pipeline' do
@@ -301,7 +306,7 @@ describe RedisCopy::Strategy::Classic do
     end
 
     context 'with pipeline enabled' do
-      before(:each) { options.update pipeline: true }
+      let(:options) { Hash.new(pipeline: true) }
       it_should_behave_like RedisCopy::Strategy
       context '#maybe_pipeline' do
         it 'should pipeline' do

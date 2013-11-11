@@ -1,29 +1,8 @@
 # encoding: utf-8
 
-require_relative 'strategy/new'
-require_relative 'strategy/classic'
-
 module RedisCopy
   module Strategy
-    # @param source [Redis]
-    # @param destination [Redis]
-    def self.load(source, destination, ui, options = {})
-      strategy = options.fetch(:strategy, :auto).to_sym
-      new_compatible = [source, destination].all?(&New.method(:compatible?))
-      copierklass = case strategy
-                    when :classic then Classic
-                    when :new
-                      raise ArgumentError unless new_compatible
-                      New
-                    when :auto
-                      new_compatible ? New : Classic
-                    end
-      copierklass.new(source, destination, ui, options)
-    end
-
-    def self.included(base)
-      base.send(:include, Verifier)
-    end
+    extend Implements::Interface
 
     # @param source [Redis]
     # @param destination [Redis]
@@ -87,3 +66,6 @@ module RedisCopy
     end
   end
 end
+
+require_relative 'strategy/classic'
+require_relative 'strategy/new'

@@ -3,7 +3,16 @@
 module RedisCopy
   module Strategy
     class New
-      include Strategy
+      implements Strategy do |source, destination, *_|
+        [source, destination].all? do |redis|
+          bin_version = Gem::Version.new(redis.info['redis_version'])
+          bin_requirement = Gem::Requirement.new('>= 2.6.0')
+
+          break false unless bin_requirement.satisfied_by?(bin_version)
+
+          true
+        end
+      end
 
       def copy(key)
         @ui.debug("COPY: #{key.dump}")
@@ -20,14 +29,6 @@ module RedisCopy
       rescue Redis::CommandError => error
         @ui.debug("ERROR: #{error}")
         return false
-      end
-
-      def self.compatible?(redis)
-        maj, min, *_ = redis.info['redis_version'].split('.').map(&:to_i)
-        return false unless maj >= 2
-        return false unless min >= 6
-
-        return true
       end
     end
   end

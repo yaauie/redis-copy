@@ -7,18 +7,7 @@ module RedisCopy
   # but should allow smarter implementations to be built that can handle
   # billion-key dbs without blocking on IO.
   module KeyEmitter
-    def self.load(redis, ui, options = {})
-      key_emitter = options.fetch(:key_emitter, :default)
-      scan_compatible = Scan::compatible?(redis)
-      emitklass = case key_emitter
-                  when :keys then Keys
-                  when :scan
-                    raise ArgumentError unless scan_compatible
-                    Scan
-                  when :auto then scan_compatible ? Scan : Keys
-                  end
-      emitklass.new(redis, ui, options)
-    end
+    extend Implements::Interface
 
     # @param redis [Redis]
     # @param options [Hash<Symbol:String>]
@@ -44,7 +33,7 @@ module RedisCopy
 
     # The default strategy blindly uses `redis.keys('*')`
     class Keys
-      include KeyEmitter
+      implements KeyEmitter
 
       def keys
         dbsize = self.dbsize
@@ -72,26 +61,20 @@ module RedisCopy
         @ui.debug "REDIS: #{@redis.client.id} KEYS *"
         @redis.keys('*').to_enum
       end
-
-      def self.compatible?(redis)
-        true
-      end
     end
 
     class Scan
-      include KeyEmitter
-
-      def keys
-        @redis.scan_each(count: 1000)
-      end
-
-      def self.compatible?(redis)
+      implements KeyEmitter do |redis, *_|
         bin_version = Gem::Version.new(redis.info['redis_version'])
         bin_requirement = Gem::Requirement.new('>= 2.7.105')
 
-        return false unless bin_requirement.satisfied_by?(bin_version)
+        break false unless bin_requirement.satisfied_by?(bin_version)
 
         redis.respond_to?(:scan_each)
+      end
+
+      def keys
+        @redis.scan_each(count: 1000)
       end
     end
   end
