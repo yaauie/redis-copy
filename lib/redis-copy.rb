@@ -93,8 +93,9 @@ module RedisCopy
       host = uri.host
       port = uri.port if uri.port
       db = uri.path ? uri.path[1..-1].to_i : 0
+      password = uri.password
 
-      Redis.new(host: host, port: port, db: db)
+      Redis.new(host: host, port: port, db: db, password: password)
     end
   end
 end

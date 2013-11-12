@@ -24,7 +24,7 @@ $ redis-copy --help
 redis-copy v0.0.5
 Usage: redis-copy [options] <source> <destination>
     <source> and <destination> must be redis connection uris
-    like [redis://]<hostname>[:<port>][/<db>]
+    like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]
 
 Specific options:
         --strategy STRATEGY          Select strategy (auto, new, classic) (default auto)
