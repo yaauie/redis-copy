@@ -33,7 +33,7 @@ module RedisCopy
         end
 
         opts.separator "    <source> and <destination> must be redis connection uris"
-        opts.separator "    like [redis://]<hostname>[:<port>][/<db>]"
+        opts.separator "    like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]"
         opts.separator ''
         opts.separator "Specific options:"
 
