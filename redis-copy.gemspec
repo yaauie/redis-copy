@@ -8,13 +8,12 @@ Gem::Specification.new do |spec|
   spec.name          = 'redis-copy'
   spec.version       = RedisCopy::VERSION
 
-  authors_and_emails = [['Ryan Biesemeyer', 'ryan@yaauie.com']]
-  # authors_and_emails = (`sh git shortlog -sne`).lines.map do |l|
-  #   (/(?<=\t)(.+) <(.+)>\z/).match(l.chomp).last(2)
-  # end.compact.map(&:to_a)
+  authors_and_emails = (`git shortlog -sne`).lines.map do |l|
+    (/(?<=\t)(.+) <(.+)>\z/).match(l.chomp).to_a.last(2)
+  end.compact.map(&:to_a)
 
   spec.authors       = authors_and_emails.map(&:first)
-  spec.email         = authors_and_emails.map(&:last)
+  spec.email         = ['redis-copy@yaauie.com']
   spec.summary       = 'Copy the contents of one redis db to another'
   spec.description   = 'A command-line utility built for copying the ' +
                        'contents of one redis db to another over a ' +
