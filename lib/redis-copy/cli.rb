@@ -5,7 +5,7 @@ require 'optparse'
 
 module RedisCopy
   class CLI
-    REDIS_URI = (/\A(?:redis:\/\/)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
+    REDIS_URI = (/\A(?:redis:\/\/)?(\w*:\w+@)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
     DEFAULTS = {
       ui:             :command_line,
       key_emitter:    :auto,
@@ -33,7 +33,7 @@ module RedisCopy
         end
 
         opts.separator "    <source> and <destination> must be redis connection uris"
-        opts.separator "    like [redis://]<hostname>[:<port>][/<db>]"
+        opts.separator "    like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]"
         opts.separator ''
         opts.separator "Specific options:"
 
