@@ -95,7 +95,11 @@ module RedisCopy
       db = uri.path ? uri.path[1..-1].to_i : 0
       password = uri.password
 
-      Redis.new(host: host, port: port, db: db, password: password)
+      # Connect & Ping to ensure access.
+      Redis.new(host: host, port: port, db: db, password: password).tap(&:ping)
+    rescue Redis::CommandError => e
+      fail(Redis::CommandError,
+           "There was a problem connecting to #{uri.to_s}\n#{e.message}")
     end
   end
 end
