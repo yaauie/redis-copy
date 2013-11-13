@@ -8,8 +8,6 @@ module RedisCopy
     REDIS_URI = (/\A(?:redis:\/\/)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
     DEFAULTS = {
       ui:             :command_line,
-      key_emitter:    :auto,
-      strategy:       :auto,
       verify:         0,
       pipeline:       :true,
       fail_fast:      false,
@@ -36,30 +34,6 @@ module RedisCopy
         opts.separator "    like [redis://]<hostname>[:<port>][/<db>]"
         opts.separator ''
         opts.separator "Specific options:"
-
-        strategies = ->{Strategy.list_implementation_names << :auto}
-        opts.on('--strategy STRATEGY',
-          indent_desc.(
-            "Select strategy (#{strategies.call.join(', ')}) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    uses best available strategy for copying\n" +
-            "  new:     use redis DUMP and RESTORE commands (faster)\n" +
-            "  classic: migrates via multiple type-specific commands"
-          )
-        ) do |strategy|
-          options[:strategy] = strategy.split(',')
-        end
-
-        emitters = ->{ KeyEmitter.list_implementation_names << :auto }
-        opts.on('--emitter EMITTER',
-          indent_desc.(
-            "Select key emitter (#{emitters.call.join(', ')}) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    best available key emitter\n" +
-            "  scan:    use redis SCAN command (faster, less blocking)\n" +
-            "  keys:    uses redis KEYS command (dangerous, esp. on large datasets)"
-          )
-        ) do |emitter|
-          options[:key_emitter] = emitter.split(',')
-        end
 
         opts.on('--[no-]pipeline',
           "Use redis pipeline where available (default #{DEFAULTS[:pipeline]})"
