@@ -8,7 +8,7 @@ module RedisCopy
           bin_version = Gem::Version.new(redis.info['redis_version'])
           bin_requirement = Gem::Requirement.new('>= 2.6.0')
 
-          break false unless bin_requirement.satisfied_by?(bin_version)
+          next false unless bin_requirement.satisfied_by?(bin_version)
 
           true
         end
