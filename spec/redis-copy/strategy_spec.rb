@@ -10,7 +10,7 @@ end
 shared_examples_for(:ttl_set) do
   # key, redis, ttl
   subject { redis.ttl(key) }
-  it { should eq ttl }
+  it { should be_within(1).of(ttl) }
 end
 
 shared_examples_for '#verify?' do
