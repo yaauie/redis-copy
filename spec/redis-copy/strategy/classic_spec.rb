@@ -5,7 +5,6 @@ require 'redis-copy'
 require 'redis-copy/strategy/interface.spec'
 
 describe RedisCopy::Strategy::Classic do
-  let(:selector) { :classic }
   it_should_behave_like RedisCopy::Strategy do
     context '#maybe_pipeline' do
       it 'should not pipeline' do

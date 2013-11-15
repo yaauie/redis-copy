@@ -9,7 +9,7 @@ if defined?(::RSpec)
     let(:strategy_class) { described_class }
     let(:options) { Hash.new } # append using before(:each) { options.update(foo: true) }
     let(:ui) { RedisCopy::UI::CommandLine.new(options) }
-    let(:strategy) { strategy_class.new(source, destination, ui, options)}
+    let(:selector) { strategy_class.name.underscore.dasherize } # see implements gem
     let(:strategy_class_finder) { RedisCopy::Strategy.implementation(selector) }
     let(:strategy) { strategy_class_finder.new(source, destination, ui, options) }
     let(:multiplex) { RedisMultiplex.new(source, destination) }
