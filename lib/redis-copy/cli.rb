@@ -15,6 +15,7 @@ module RedisCopy
       trace:          false,
       debug:          false,
       allow_nonempty: false,
+      pattern:        '*',
     }.freeze unless defined?(DEFAULTS)
 
     def initialize(argv = ARGV)
@@ -34,6 +35,13 @@ module RedisCopy
         opts.separator "    like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]"
         opts.separator ''
         opts.separator "Specific options:"
+
+        opts.on('--pattern PATTERN', indent_desc[
+          "Only transfer matching keys (default #{DEFAULTS[:pattern]})\n" +
+          "See http://redis.io/commands/keys for more info."
+        ]) do |pattern|
+          options[:pattern] = pattern
+        end
 
         opts.on('--[no-]pipeline',
           "Use redis pipeline where available (default #{DEFAULTS[:pipeline]})"

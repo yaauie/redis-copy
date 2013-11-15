@@ -31,6 +31,7 @@ module RedisCopy
       return false unless ui.confirm? <<-EODESC.strip_heredoc
         Source:      #{source.client.id}
         Destination: #{destination.client.id} (#{dest_empty ? '' : 'NOT '}empty)
+        Pattern:     #{options[:pattern]}
         Key Emitter: #{key_emitter}
         Strategy:    #{strategem}
       EODESC
