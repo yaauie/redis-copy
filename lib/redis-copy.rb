@@ -23,10 +23,7 @@ module RedisCopy
 
       ui.abort('source cannot equal destination!') if same_redis?(source, destination)
 
-      emitter = options.fetch(:key_emitter, :auto)
       key_emitter = KeyEmitter.new(source, ui, options)
-
-      strategy = options.fetch(:strategy, :auto)
       strategem = Strategy.new(source, destination, ui, options)
 
       dest_empty = !(destination.randomkey) # randomkey returns string unless db empty.
