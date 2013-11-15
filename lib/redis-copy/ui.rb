@@ -1,16 +1,8 @@
 # encoding: utf-8
 
-require_relative 'ui/auto_run'
-require_relative 'ui/command_line'
-
 module RedisCopy
   module UI
-    def self.load(options = {})
-      ui = options.fetch(:ui, :auto_run)
-      const_name = ui.to_s.camelize
-      require "redis-copy/ui/#{ui}" unless const_defined?(const_name)
-      const_get(const_name).new(options)
-    end
+    extend Implements::Interface
 
     def initialize(options)
       @options = options
@@ -36,3 +28,7 @@ module RedisCopy
     end
   end
 end
+
+# load the bundled uis:
+require_relative 'ui/auto_run'
+require_relative 'ui/command_line'

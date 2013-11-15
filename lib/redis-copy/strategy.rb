@@ -14,7 +14,7 @@ module RedisCopy
     end
 
     def to_s
-      self.class.name.demodulize.humanize
+      self.class.name.demodulize
     end
 
     # @param key [String]

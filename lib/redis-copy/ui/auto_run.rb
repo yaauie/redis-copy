@@ -3,7 +3,7 @@
 module RedisCopy
   module UI
     class AutoRun
-      include UI
+      implements UI
 
       def confirm?(prompt)
         $stderr.puts(prompt)

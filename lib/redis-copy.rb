@@ -16,7 +16,7 @@ module RedisCopy
     # @param destination [String]
     # @options options [Hash<Symbol,Object>]
     def copy(source, destination, options = {})
-      ui = UI.load(options)
+      ui = UI.new(options)
 
       source = redis_from(source)
       destination = redis_from(destination)

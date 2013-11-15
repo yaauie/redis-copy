@@ -3,7 +3,9 @@
 module RedisCopy
   module UI
     class CommandLine
-      include UI
+      implements UI do |options|
+        options[:ui].to_s.underscore.dasherize == 'command-line'
+      end
 
       def confirm?(prompt)
         $stderr.puts(prompt)
