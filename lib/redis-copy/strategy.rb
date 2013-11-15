@@ -68,4 +68,4 @@ module RedisCopy
 end
 
 require_relative 'strategy/classic'
-require_relative 'strategy/new'
+require_relative 'strategy/dump-restore'

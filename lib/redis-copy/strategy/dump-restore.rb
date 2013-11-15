@@ -2,7 +2,7 @@
 
 module RedisCopy
   module Strategy
-    class New
+    class DumpRestore
       implements Strategy do |source, destination, *_|
         [source, destination].all? do |redis|
           bin_version = Gem::Version.new(redis.info['redis_version'])
