@@ -3,6 +3,7 @@
 require 'redis'
 require 'active_support/inflector'
 require 'active_support/core_ext/string/strip' # String#strip_heredoc
+require 'implements/global'
 
 require 'redis-copy/version'
 require 'redis-copy/ui'
@@ -22,8 +23,8 @@ module RedisCopy
 
       ui.abort('source cannot equal destination!') if same_redis?(source, destination)
 
-      key_emitter = KeyEmitter.load(source, ui, options)
-      strategem = Strategy.load(source, destination, ui, options)
+      key_emitter = KeyEmitter.new(source, ui, options)
+      strategem = Strategy.new(source, destination, ui, options)
 
       dest_empty = !(destination.randomkey) # randomkey returns string unless db empty.
 
@@ -60,6 +61,9 @@ module RedisCopy
       end.tap do |stats|
         ui.notify("DONE: #{stats.inspect}")
       end
+    rescue Implements::Implementation::NotFound => e
+      ui.notify(e.to_s)
+      ui.abort
     end
 
     private

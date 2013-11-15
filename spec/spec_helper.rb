@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 REDIS_PORT    = 6381
 REDIS_OPTIONS = { 
   :port     => REDIS_PORT, 

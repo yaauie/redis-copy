@@ -8,8 +8,6 @@ module RedisCopy
     REDIS_URI = (/\A(?:redis:\/\/)?(\w*:\w+@)?([a-z0-9\-.]+)(:[0-9]{1,5})?(\/(?:(?:1[0-5])|[0-9]))?\z/i).freeze
     DEFAULTS = {
       ui:             :command_line,
-      key_emitter:    :auto,
-      strategy:       :auto,
       verify:         0,
       pipeline:       :true,
       fail_fast:      false,
@@ -37,32 +35,24 @@ module RedisCopy
         opts.separator ''
         opts.separator "Specific options:"
 
-        opts.on('--strategy STRATEGY', [:auto, :new, :classic],
-          indent_desc.(
-            "Select strategy (auto, new, classic) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    uses new if available, otherwise fallback\n" +
-            "  new:     use redis DUMP and RESTORE commands (faster)\n" +
-            "  classic: migrates via multiple type-specific commands"
-          )
-        ) do |strategy|
-          options[:strategy] = strategy
-        end
-
-        opts.on('--emitter EMITTER', [:auto, :scan, :keys],
-          indent_desc.(
-            "Select key emitter (auto, keys, scan) (default #{DEFAULTS[:strategy]})\n" +
-            "  auto:    uses scan if available, otherwise fallback\n" +
-            "  scan:    use redis SCAN command (faster, less blocking)\n" +
-            "  keys:    uses redis KEYS command (dangerous, esp. on large datasets)"
-          )
-        ) do |emitter|
-          options[:key_emitter] = emitter
-        end
-
         opts.on('--[no-]pipeline',
           "Use redis pipeline where available (default #{DEFAULTS[:pipeline]})"
         ) do |pipeline|
           options[:pipeline] = pipeline
+        end
+
+        opts.on('-r', '--require FILENAME', indent_desc.(
+          "Require a script; useful for loading third-party\n" +
+          "implementations of key-emitter or copy strategies.\n" +
+          "Relative paths *must* begin with `../' or `./'.")
+        ) do |script|
+          begin
+            script = File.expand_path(script) if script[/\A..?\//]
+            require script
+          rescue LoadError => e
+            $stderr.puts e.message
+            exit 1
+          end
         end
 
         opts.on('-d', '--[no-]debug', "Write debug output (default #{DEFAULTS[:debug]})") do |debug|
@@ -102,16 +92,21 @@ module RedisCopy
           options[:dry_run] = true
         end
 
-        opts.parse!(argv)
-        unless argv.size == 2
-          opts.abort "Source and Destination must be specified\n\n" +
-                            opts.help
-        end
-        @source = argv.shift
-        @destination = argv.shift
+        begin
+          opts.parse!(argv)
+          unless argv.size == 2
+            opts.abort "Source and Destination must be specified\n\n" +
+                              opts.help
+          end
+          @source = argv.shift
+          @destination = argv.shift
 
-        opts.abort "source is not valid URI" unless @source =~ REDIS_URI
-        opts.abort "destination is not valid URI" unless @destination =~ REDIS_URI
+          opts.abort "source is not valid URI" unless @source =~ REDIS_URI
+          opts.abort "destination is not valid URI" unless @destination =~ REDIS_URI
+        rescue OptionParser::ParseError => error
+          $stderr.puts error
+          exit 1
+        end
       end
 
       @config = DEFAULTS.merge(options)
