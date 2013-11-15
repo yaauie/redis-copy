@@ -26,6 +26,8 @@ Usage: redis-copy [options] <source> <destination>
     like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]
 
 Specific options:
+        --pattern PATTERN            Only transfer matching keys (default *)
+                                     See http://redis.io/commands/keys for more info.
         --[no-]pipeline              Use redis pipeline where available (default true)
     -r, --require FILENAME           Require a script; useful for loading third-party
                                      implementations of key-emitter or copy strategies.
