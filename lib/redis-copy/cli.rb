@@ -41,6 +41,20 @@ module RedisCopy
           options[:pipeline] = pipeline
         end
 
+        opts.on('-r', '--require FILENAME', indent_desc.(
+          "Require a script; useful for loading third-party\n" +
+          "implementations of key-emitter or copy strategies.\n" +
+          "Relative paths *must* begin with `../' or `./'.")
+        ) do |script|
+          begin
+            script = File.expand_path(script) if script[/\A..?\//]
+            require script
+          rescue LoadError => e
+            $stderr.puts e.message
+            exit 1
+          end
+        end
+
         opts.on('-d', '--[no-]debug', "Write debug output (default #{DEFAULTS[:debug]})") do |debug|
           options[:debug] = debug
         end
