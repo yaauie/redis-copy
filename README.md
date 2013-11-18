@@ -26,18 +26,18 @@ Usage: redis-copy [options] <source> <destination>
     like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]
 
 Specific options:
-        --pattern PATTERN            Only transfer matching keys (default *)
+    -p, --pattern PATTERN            Only transfer matching keys (default *)
                                      See http://redis.io/commands/keys for more info.
-        --[no-]pipeline              Use redis pipeline where available (default true)
+    -v, --[no-]verify [PERCENT]      Verify percentage of transfers -- VERY SLOW (default 0)
+    -n, --[no-]allow-nonempty        Allow non-empty destination (default false)
+    -f, --[no-]fail-fast             Abort on first failure (default false)
+        --[no-]pipeline              Pipeline redis commands where available (default true)
     -r, --require FILENAME           Require a script; useful for loading third-party
                                      implementations of key-emitter or copy strategies.
                                      Relative paths *must* begin with `../' or `./'.
     -d, --[no-]debug                 Write debug output (default false)
     -t, --[no-]trace                 Enable backtrace on failure (default false)
-    -f, --[no-]fail-fast             Abort on first failure (default false)
-        --[no-]verify [PERCENT]      Verify percentage of transfers -- VERY SLOW (default 0)
         --[no-]prompt                Prompt for confirmation (default true)
-        --[no-]allow-nonempty        Allow non-empty destination (default false)
         --[no-]dry-run               Output configuration and exit
 ```
 
