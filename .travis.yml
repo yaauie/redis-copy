@@ -4,9 +4,6 @@ script: "bundle exec rake run"
 rvm:
   - 1.9.3
   - 2.0.0
-gemfile:
-  - .travis/Gemfile.redis-gem-3.0
-  - .travis/Gemfile.redis-gem-master
 env:
   global:
     - TIMEOUT=1
