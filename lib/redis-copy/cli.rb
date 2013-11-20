@@ -129,5 +129,12 @@ module RedisCopy
       $stderr.puts exception.backtrace if @config[:trace]
       exit 1
     end
+
+    def inspect
+      "<#{self.class}\n" +
+      "  source: #{@source}\n" +
+      "  destination: #{@destination}\n" +
+      "  #{@config.map{|k,v| [k,v.inspect].join(': ')}.join("\n  ")}\n/>"
+    end
   end
 end
