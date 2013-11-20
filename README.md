@@ -20,7 +20,7 @@ The current options can be grabbed using the `--help` flag.
 
 ```
 $ redis-copy --help
-redis-copy v1.0.0.rc.0 (with redis-rb 3.0.6)
+redis-copy v1.0.0 (with redis-rb 3.0.6)
 Usage: redis-copy [options] <source> <destination>
     <source> and <destination> must be redis connection uris
     like [redis://][<username>:<password>@]<hostname>[:<port>][/<db>]
