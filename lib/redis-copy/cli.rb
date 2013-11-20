@@ -15,6 +15,7 @@ module RedisCopy
       trace:          false,
       debug:          false,
       allow_nonempty: false,
+      pattern:        '*',
     }.freeze unless defined?(DEFAULTS)
 
     def initialize(argv = ARGV)
@@ -35,8 +36,36 @@ module RedisCopy
         opts.separator ''
         opts.separator "Specific options:"
 
+        opts.on('-p', '--pattern PATTERN', indent_desc[
+          "Only transfer matching keys (default #{DEFAULTS[:pattern]})\n" +
+          "See http://redis.io/commands/keys for more info."
+        ]) do |pattern|
+          options[:pattern] = pattern
+        end
+
+        opts.on('-v', '--[no-]verify [PERCENT]',
+          "Verify percentage of transfers -- VERY SLOW (default #{DEFAULTS[:verify]})"
+        ) do |verify|
+          options[:verify] = case verify
+                             when /\A1?[0-9]{2}\z/
+                               verify.to_i
+                             when false, 'false', 'none'
+                               0
+                             else
+                               100
+                             end
+        end
+
+        opts.on('-n', '--[no-]allow-nonempty', "Allow non-empty destination (default #{DEFAULTS[:allow_nonempty]})") do |allow_nonempty|
+          options[:allow_nonempty] = allow_nonempty
+        end
+
+        opts.on('-f', '--[no-]fail-fast', "Abort on first failure (default #{DEFAULTS[:fail_fast]})") do |ff|
+          options[:fail_fast] = ff
+        end
+
         opts.on('--[no-]pipeline',
-          "Use redis pipeline where available (default #{DEFAULTS[:pipeline]})"
+          "Pipeline redis commands where available (default #{DEFAULTS[:pipeline]})"
         ) do |pipeline|
           options[:pipeline] = pipeline
         end
@@ -63,29 +92,8 @@ module RedisCopy
           options[:trace] = trace
         end
 
-        opts.on('-f', '--[no-]fail-fast', "Abort on first failure (default #{DEFAULTS[:fail_fast]})") do |ff|
-          options[:fail_fast] = ff
-        end
-
-        opts.on('--[no-]verify [PERCENT]',
-          "Verify percentage of transfers -- VERY SLOW (default #{DEFAULTS[:verify]})"
-        ) do |verify|
-          options[:verify] = case verify
-                             when /\A1?[0-9]{2}\z/
-                               verify.to_i
-                             when false, 'false', 'none'
-                               0
-                             else
-                               100
-                             end
-        end
-
         opts.on('--[no-]prompt', "Prompt for confirmation (default #{DEFAULTS[:prompt]})") do |prompt|
           options[:prompt] = prompt
-        end
-
-        opts.on('--[no-]allow-nonempty', "Allow non-empty destination (default #{DEFAULTS[:allow_nonempty]})") do |allow_nonempty|
-          options[:allow_nonempty] = allow_nonempty
         end
 
         opts.on('--[no-]dry-run', 'Output configuration and exit') do |d|
@@ -120,6 +128,13 @@ module RedisCopy
       $stderr.puts exception.message
       $stderr.puts exception.backtrace if @config[:trace]
       exit 1
+    end
+
+    def inspect
+      "<#{self.class}\n" +
+      "  source: #{@source}\n" +
+      "  destination: #{@destination}\n" +
+      "  #{@config.map{|k,v| [k,v.inspect].join(': ')}.join("\n  ")}\n/>"
     end
   end
 end

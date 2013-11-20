@@ -14,7 +14,7 @@ module RedisCopy
     end
 
     def keys
-      @redis.scan_each(count: 1000)
+      @redis.scan_each(count: 1000, match: pattern)
     end
   end
 end

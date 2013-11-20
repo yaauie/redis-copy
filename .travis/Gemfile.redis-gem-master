@@ -1,6 +1,0 @@
-# encoding: utf-8
-source 'https://rubygems.org'
-
-gem 'redis', :git => 'https://github.com/redis/redis-rb.git'
-
-gemspec :path => '../'

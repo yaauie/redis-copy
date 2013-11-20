@@ -11,6 +11,7 @@ module RedisCopy
 
     # @param redis [Redis]
     # @param options [Hash<Symbol:String>]
+    # @option options [String] :pattern ('*')
     def initialize(redis, ui, options = {})
       @redis    = redis
       @ui       = ui
@@ -21,6 +22,10 @@ module RedisCopy
     def keys
       return super if defined?(super)
       raise NotImplementedError
+    end
+
+    def pattern
+      @pattern ||= @options.fetch(:pattern) { '*' }
     end
 
     def dbsize

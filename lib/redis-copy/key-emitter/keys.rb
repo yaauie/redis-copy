@@ -32,8 +32,8 @@ module RedisCopy
         > keys in a subset of your keyspace, consider using sets.
       EOWARNING
 
-      @ui.debug "REDIS: #{@redis.client.id} KEYS *"
-      @redis.keys('*').to_enum
+      @ui.debug "REDIS: #{@redis.client.id} KEYS #{pattern}"
+      @redis.keys(pattern).to_enum
     end
   end
 end
