@@ -1,4 +1,4 @@
-# Redis::Copy
+# RedisCopy
 
 This utility provides a way to move the contents of one redis DB to another
 redis DB. It is inspired by the [redis-copy.rb script][original] included in
